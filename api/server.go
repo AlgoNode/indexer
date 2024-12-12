@@ -25,6 +25,8 @@ type ExtraOptions struct {
 
 	// Respond to Private Network Access preflight requests sent to the indexer.
 	EnablePrivateNetworkAccessHeader bool
+	// DeveloperMode turns on features like AddressSearchRoundRewind
+	DeveloperMode bool
 
 	// MetricsEndpoint turns on the /metrics endpoint for prometheus metrics.
 	MetricsEndpoint bool
@@ -136,12 +138,13 @@ func Serve(ctx context.Context, serveAddr string, db idb.IndexerDb, dataError fu
 	}
 
 	api := ServerImplementation{
-		db:             db,
-		dataError:      dataError,
-		timeout:        options.handlerTimeout(),
-		log:            log,
-		disabledParams: disabledMap,
-		opts:           options,
+		EnableAddressSearchRoundRewind: options.DeveloperMode,
+		db:                             db,
+		dataError:                      dataError,
+		timeout:                        options.handlerTimeout(),
+		log:                            log,
+		disabledParams:                 disabledMap,
+		opts:                           options,
 	}
 
 	generated.RegisterHandlers(e, &api, middleware...)
