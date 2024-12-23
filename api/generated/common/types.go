@@ -36,6 +36,7 @@ const (
 	TransactionTxTypeAfrz   TransactionTxType = "afrz"
 	TransactionTxTypeAppl   TransactionTxType = "appl"
 	TransactionTxTypeAxfer  TransactionTxType = "axfer"
+	TransactionTxTypeHb     TransactionTxType = "hb"
 	TransactionTxTypeKeyreg TransactionTxType = "keyreg"
 	TransactionTxTypePay    TransactionTxType = "pay"
 	TransactionTxTypeStpf   TransactionTxType = "stpf"
@@ -61,6 +62,7 @@ const (
 	TxTypeAfrz   TxType = "afrz"
 	TxTypeAppl   TxType = "appl"
 	TxTypeAxfer  TxType = "axfer"
+	TxTypeHb     TxType = "hb"
 	TxTypeKeyreg TxType = "keyreg"
 	TxTypePay    TxType = "pay"
 	TxTypeStpf   TxType = "stpf"
@@ -561,6 +563,24 @@ type HashFactory struct {
 // * sha256
 type Hashtype string
 
+// HbProofFields \[hbprf\] HbProof is a signature using HeartbeatAddress's partkey, thereby showing it is online.
+type HbProofFields struct {
+	// HbPk \[p\] Public key of the heartbeat message.
+	HbPk *[]byte `json:"hb-pk,omitempty"`
+
+	// HbPk1sig \[p1s\] Signature of OneTimeSignatureSubkeyOffsetID(PK, Batch, Offset) under the key PK2.
+	HbPk1sig *[]byte `json:"hb-pk1sig,omitempty"`
+
+	// HbPk2 \[p2\] Key for new-style two-level ephemeral signature.
+	HbPk2 *[]byte `json:"hb-pk2,omitempty"`
+
+	// HbPk2sig \[p2s\] Signature of OneTimeSignatureSubkeyBatchID(PK2, Batch) under the master key (OneTimeSignatureVerifier).
+	HbPk2sig *[]byte `json:"hb-pk2sig,omitempty"`
+
+	// HbSig \[s\] Signature of the heartbeat message.
+	HbSig *[]byte `json:"hb-sig,omitempty"`
+}
+
 // HealthCheck A health check response.
 type HealthCheck struct {
 	Data        *map[string]interface{} `json:"data,omitempty"`
@@ -827,6 +847,12 @@ type Transaction struct {
 	// Group \[grp\] Base64 encoded byte array of a sha512/256 digest. When present indicates that this transaction is part of a transaction group and the value is the sha512/256 hash of the transactions in that group.
 	Group *[]byte `json:"group,omitempty"`
 
+	// HeartbeatTransaction Fields for a heartbeat transaction.
+	//
+	// Definition:
+	// data/transactions/heartbeat.go : HeartbeatTxnFields
+	HeartbeatTransaction *TransactionHeartbeat `json:"heartbeat-transaction,omitempty"`
+
 	// Id Transaction ID
 	Id *string `json:"id,omitempty"`
 
@@ -897,6 +923,7 @@ type Transaction struct {
 	// * \[afrz\] asset-freeze-transaction
 	// * \[appl\] application-transaction
 	// * \[stpf\] state-proof-transaction
+	// * \[hb\] heartbeat-transaction
 	TxType TransactionTxType `json:"tx-type"`
 }
 
@@ -910,6 +937,7 @@ type Transaction struct {
 // * \[afrz\] asset-freeze-transaction
 // * \[appl\] application-transaction
 // * \[stpf\] state-proof-transaction
+// * \[hb\] heartbeat-transaction
 type TransactionTxType string
 
 // TransactionApplication Fields for application transactions.
@@ -1017,6 +1045,27 @@ type TransactionAssetTransfer struct {
 
 	// Sender \[asnd\] The effective sender during a clawback transactions. If this is not a zero value, the real transaction sender must be the Clawback address from the AssetParams.
 	Sender *string `json:"sender,omitempty"`
+}
+
+// TransactionHeartbeat Fields for a heartbeat transaction.
+//
+// Definition:
+// data/transactions/heartbeat.go : HeartbeatTxnFields
+type TransactionHeartbeat struct {
+	// HbAddress \[hbad\] HbAddress is the account this txn is proving onlineness for.
+	HbAddress string `json:"hb-address"`
+
+	// HbKeyDilution \[hbkd\] HbKeyDilution must match HbAddress account's current KeyDilution.
+	HbKeyDilution uint64 `json:"hb-key-dilution"`
+
+	// HbProof \[hbprf\] HbProof is a signature using HeartbeatAddress's partkey, thereby showing it is online.
+	HbProof HbProofFields `json:"hb-proof"`
+
+	// HbSeed \[hbsd\] HbSeed must be the block seed for the this transaction's firstValid block.
+	HbSeed []byte `json:"hb-seed"`
+
+	// HbVoteId \[hbvid\] HbVoteID must match the HbAddress account's current VoteID.
+	HbVoteId []byte `json:"hb-vote-id"`
 }
 
 // TransactionKeyreg Fields for a keyreg transaction.
@@ -1144,6 +1193,9 @@ type TransactionStateProof struct {
 	StateProofType *uint64 `json:"state-proof-type,omitempty"`
 }
 
+// Absent defines model for absent.
+type Absent = []string
+
 // AccountId defines model for account-id.
 type AccountId = string
 
@@ -1183,6 +1235,9 @@ type Exclude = []string
 // ExcludeCloseTo defines model for exclude-close-to.
 type ExcludeCloseTo = bool
 
+// Expired defines model for expired.
+type Expired = []string
+
 // HeaderOnly defines model for header-only.
 type HeaderOnly = bool
 
@@ -1203,6 +1258,9 @@ type Next = string
 
 // NotePrefix defines model for note-prefix.
 type NotePrefix = string
+
+// Proposers defines model for proposers.
+type Proposers = []string
 
 // RekeyTo defines model for rekey-to.
 type RekeyTo = bool
@@ -1326,6 +1384,17 @@ type AssetResponse struct {
 // AssetsResponse defines model for AssetsResponse.
 type AssetsResponse struct {
 	Assets []Asset `json:"assets"`
+
+	// CurrentRound Round at which the results were computed.
+	CurrentRound uint64 `json:"current-round"`
+
+	// NextToken Used for pagination, when making another request provide this token with the next parameter.
+	NextToken *string `json:"next-token,omitempty"`
+}
+
+// BlockHeadersResponse defines model for BlockHeadersResponse.
+type BlockHeadersResponse struct {
+	Blocks []Block `json:"blocks"`
 
 	// CurrentRound Round at which the results were computed.
 	CurrentRound uint64 `json:"current-round"`
