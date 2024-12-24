@@ -644,6 +644,15 @@ func TestFetchTransactions(t *testing.T) {
 				loadTransactionFromFile("test_resources/state_proof_with_index.response"),
 			},
 		},
+		{
+			name: "Heartbeat Txn",
+			txnBytes: [][]byte{
+				loadResourceFileOrPanic("test_resources/heartbeat.txn"),
+			},
+			response: []generated.Transaction{
+				loadTransactionFromFile("test_resources/heartbeat.response"),
+			},
+		},
 	}
 
 	// use for the branch below and createTxn helper func to add a new test case
@@ -656,8 +665,8 @@ func TestFetchTransactions(t *testing.T) {
 			response []generated.Transaction
 			created  uint64
 		}{
-			name:     "State Proof Txn",
-			txnBytes: [][]byte{loadResourceFileOrPanic("test_resources/state_proof.txn")},
+			name:     "HeartBeat Txn",
+			txnBytes: [][]byte{loadResourceFileOrPanic("test_resources/heartbeat.txn")},
 		})
 	}
 	for _, test := range tests {
@@ -865,7 +874,7 @@ func TestTimeouts(t *testing.T) {
 			errString: errTransactionSearch,
 			mockCall:  transactionFunc,
 			callHandler: func(ctx echo.Context, si ServerImplementation) error {
-				return si.LookupAccountTransactions(ctx, "", generated.LookupAccountTransactionsParams{})
+				return si.LookupAccountTransactions(ctx, "MONEYMBRSMUAM2NGL6PCEQEDVHFWAQB6DU47NUS6P5DJM4OJFN7E7DSVBA", generated.LookupAccountTransactionsParams{})
 			},
 		},
 		{

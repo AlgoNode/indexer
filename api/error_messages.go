@@ -11,6 +11,7 @@ import (
 const (
 	errInvalidRoundAndMinMax           = "cannot specify round and min-round/max-round"
 	errInvalidRoundMinMax              = "min-round must be less than max-round"
+	errInvalidTimeMinMax               = "after-time must be less than before-time"
 	errUnableToParseAddress            = "unable to parse address"
 	errInvalidCreatorAddress           = "found an invalid creator address"
 	errUnableToParseBase64             = "unable to parse base64 data"
@@ -39,6 +40,7 @@ const (
 	errMultiAcctRewind                 = "multiple accounts rewind is not supported by this server"
 	errRewindingAccount                = "error while rewinding account"
 	errLookingUpBlockForRound          = "error while looking up block for round"
+	errBlockHeaderSearch               = "error while searching for block headers"
 	errTransactionSearch               = "error while searching for transaction"
 	errZeroAddressCloseRemainderToRole = "searching transactions by zero address with close address role is not supported"
 	errZeroAddressAssetSenderRole      = "searching transactions by zero address with asset sender role is not supported"
