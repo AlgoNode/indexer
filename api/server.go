@@ -23,10 +23,11 @@ type ExtraOptions struct {
 	// Tokens are the access tokens which can access the API.
 	Tokens []string
 
-	// Respond to Private Network Access preflight requests sent to the indexer.
-	EnablePrivateNetworkAccessHeader bool
 	// DeveloperMode turns on features like AddressSearchRoundRewind
 	DeveloperMode bool
+
+	// Respond to Private Network Access preflight requests sent to the indexer.
+	EnablePrivateNetworkAccessHeader bool
 
 	// MetricsEndpoint turns on the /metrics endpoint for prometheus metrics.
 	MetricsEndpoint bool
